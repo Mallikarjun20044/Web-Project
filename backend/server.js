@@ -49,15 +49,23 @@ app.get('/api/health', (req, res) => {
 });
 
 /**
- * Serve Frontend
+ * Serve Frontend - Root route
  */
 app.get('/', (req, res) => {
   res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
-// SPA fallback - serve index.html for all non-API routes
+/**
+ * Serve HTML pages from /pages/ directory
+ */
+app.get('/pages/:page', (req, res) => {
+  const pagePath = path.join(frontendPath, 'pages', req.params.page);
+  res.sendFile(pagePath);
+});
+
+// SPA fallback - serve index.html for all other non-API routes
 app.get('*', (req, res) => {
-  if (!req.path.startsWith('/api')) {
+  if (!req.path.startsWith('/api') && !req.path.startsWith('/css') && !req.path.startsWith('/js') && !req.path.startsWith('/assets')) {
     res.sendFile(path.join(frontendPath, 'index.html'));
   }
 });
