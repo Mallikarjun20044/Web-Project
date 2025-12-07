@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Study Planner - AI Study Planner</title>
+  <!-- FIXED PATH: Changed from /css/styles.css (absolute path) to ../css/styles.css (relative path)
+       WHY: Pages in /pages/ folder need to go up one level (..) to access /css/ folder
+       This prevents ERR_FILE_NOT_FOUND errors -->
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    .planner-layout {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .main-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .planner-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .planner-header h1 {
+      margin: 0;
+    }
+
+    .plan-section {
+      background: var(--bg-primary);
+      padding: 1.5rem;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+    }
+
+    .plan-section h3 {
+      margin-top: 0;
+      color: var(--primary);
+      border-bottom: 2px solid var(--bg-tertiary);
+      padding-bottom: 0.5rem;
+    }
+
+    .schedule-slot {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%);
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      margin-bottom: 1rem;
+      border-left: 4px solid var(--primary);
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+    }
+
+    .slot-time {
+      font-weight: 700;
+      color: var(--primary);
+      min-width: 100px;
+    }
+
+    .slot-details {
+      flex: 1;
+      margin-left: 1rem;
+    }
+
+    .slot-subject {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .slot-task {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin-bottom: 0.25rem;
+    }
+
+    .slot-duration {
+      color: var(--text-light);
+      font-size: 0.85rem;
+    }
+
+    .break-slot {
+      border-left-color: var(--success);
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(6, 182, 212, 0.05) 100%);
+    }
+
+    .subject-card {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      margin-bottom: 1rem;
+      border: 2px solid var(--bg-tertiary);
+    }
+
+    .subject-title {
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+    }
+
+    .subject-meta {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .subject-meta span {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+
+    .break-card {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(6, 182, 212, 0.1) 100%);
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      margin-bottom: 1rem;
+      border-left: 4px solid var(--success);
+    }
+
+    .break-time {
+      font-weight: 700;
+      color: var(--success);
+      margin-bottom: 0.25rem;
+    }
+
+    .break-duration {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .insight-card {
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      margin-bottom: 1rem;
+      display: flex;
+      gap: 1rem;
+      border-left: 4px solid;
+      background: var(--bg-primary);
+    }
+
+    .insight-icon {
+      font-size: 1.5rem;
+      min-width: 2rem;
+      text-align: center;
+    }
+
+    .insight-content h4 {
+      margin: 0 0 0.25rem;
+    }
+
+    .insight-content p {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    .insight-success {
+      border-left-color: var(--success);
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(6, 182, 212, 0.05) 100%);
+    }
+
+    .insight-warning {
+      border-left-color: var(--warning);
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%);
+    }
+
+    .insight-tip {
+      border-left-color: var(--info);
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.05) 0%, rgba(99, 102, 241, 0.05) 100%);
+    }
+
+    .focus-hours-item {
+      background: var(--bg-tertiary);
+      padding: 1rem;
+      border-radius: var(--radius-md);
+      margin-bottom: 0.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .focus-time {
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .focus-productivity {
+      background: var(--primary);
+      color: white;
+      padding: 0.25rem 0.75rem;
+      border-radius: var(--radius-full);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-light);
+    }
+
+    .loading::after {
+      content: '';
+      animation: pulse 1.5s infinite;
+    }
+
+    .two-column {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 1024px) {
+      .two-column {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .planner-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+      }
+
+      .schedule-slot {
+        flex-direction: column;
+      }
+
+      .slot-time {
+        margin-bottom: 0.5rem;
+      }
+
+      .slot-details {
+        margin-left: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="/" class="navbar-brand">📚 AI Study Planner</a>
+      <ul class="navbar-nav">
+        <li><a href="/pages/dashboard.html">Dashboard</a></li>
+        <li><a href="/pages/study-planner.html" class="active">AI Planner</a></li>
+        <li><a href="/pages/timetable.html">Timetable</a></li>
+        <li><a href="/pages/analytics.html">Analytics</a></li>
+        <li><a href="/pages/settings.html">Settings</a></li>
+        <li><button onclick="API.logout()" class="btn btn-secondary btn-sm">Logout</button></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="planner-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <h3 style="margin-bottom: 1rem;">Quick Menu</h3>
+        <a href="/pages/dashboard.html" class="sidebar-item">📊 Dashboard</a>
+        <a href="/pages/study-planner.html" class="sidebar-item active">🤖 AI Planner</a>
+        <a href="/pages/timetable.html" class="sidebar-item">📅 Timetable</a>
+        <a href="/pages/analytics.html" class="sidebar-item">📈 Analytics</a>
+        <a href="/pages/settings.html" class="sidebar-item">⚙️ Settings</a>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div class="planner-header">
+          <div>
+            <h1>🤖 AI Study Planner</h1>
+            <p style="color: var(--text-secondary); margin: 0;">Get AI-generated study recommendations</p>
+          </div>
+          <button class="btn btn-primary" onclick="generateNewPlan()">🔄 Generate Plan</button>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loading-state" class="loading" style="display: none;">
+          Loading your study plan...
+        </div>
+
+        <!-- Plan Content -->
+        <div id="plan-content" style="display: none;">
+          <!-- Daily Schedule Section -->
+          <div class="plan-section">
+            <h3>📅 Today's Recommended Schedule</h3>
+            <div id="schedule-container">
+              <p style="text-align: center; color: var(--text-light);">Loading schedule...</p>
+            </div>
+          </div>
+
+          <!-- Two Column Layout -->
+          <div class="two-column">
+            <!-- Priority Subjects -->
+            <div class="plan-section">
+              <h3>⭐ Subjects to Prioritize</h3>
+              <div id="subjects-container">
+                <p style="text-align: center; color: var(--text-light);">Loading subjects...</p>
+              </div>
+            </div>
+
+            <!-- Break Intervals -->
+            <div class="plan-section">
+              <h3>☕ Recommended Breaks</h3>
+              <div id="breaks-container">
+                <p style="text-align: center; color: var(--text-light);">Loading breaks...</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Focus Hours -->
+          <div class="plan-section">
+            <h3>⚡ Peak Productivity Hours</h3>
+            <div id="focus-hours-container">
+              <p style="text-align: center; color: var(--text-light);">Loading focus hours...</p>
+            </div>
+          </div>
+
+          <!-- AI Insights -->
+          <div class="plan-section">
+            <h3>💡 AI Insights & Tips</h3>
+            <div id="insights-container">
+              <p style="text-align: center; color: var(--text-light);">Loading insights...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- No Plan State -->
+        <div id="no-plan-state" class="plan-section" style="text-align: center;">
+          <p style="margin-bottom: 1rem;">No study plan generated yet. Click the button above to create your personalized AI study plan!</p>
+          <button class="btn btn-primary" onclick="generateNewPlan()">Generate AI Plan</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- FIXED PATH: Changed from /js/api.js (absolute path) to ../js/api.js (relative path)
+       WHY: Pages in /pages/ folder need to go up one level (..) to access /js/ folder
+       This prevents ERR_FILE_NOT_FOUND when api.js is not found -->
+  <script src="../js/api.js"></script>
+  <script>
+    // Check authentication
+    API.requireAuth();
+
+    /**
+     * Generate new study plan
+     */
+    async function generateNewPlan() {
+      try {
+        document.getElementById('loading-state').style.display = 'block';
+        document.getElementById('plan-content').style.display = 'none';
+        document.getElementById('no-plan-state').style.display = 'none';
+
+        const response = await API.generateStudyPlan();
+        const plan = response.plan;
+
+        // Render plan sections
+        renderSchedule(plan.dailySchedule);
+        renderSubjects(plan.prioritizedSubjects);
+        renderBreaks(plan.recommendedBreaks);
+        renderFocusHours(plan.focusHours);
+        renderInsights(plan.insights);
+
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('plan-content').style.display = 'block';
+
+        API.showNotification('Study plan generated successfully! ✨', 'success');
+      } catch (error) {
+        document.getElementById('loading-state').style.display = 'none';
+        API.showNotification(error.message || 'Error generating plan', 'danger');
+      }
+    }
+
+    /**
+     * Render daily schedule
+     */
+    function renderSchedule(schedule) {
+      const container = document.getElementById('schedule-container');
+      
+      if (!schedule || schedule.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-light);">No tasks to schedule</p>';
+        return;
+      }
+
+      container.innerHTML = schedule.map(slot => `
+        <div class="schedule-slot">
+          <div class="slot-time">${slot.startTime} - ${slot.endTime}</div>
+          <div class="slot-details">
+            <div class="slot-subject">📚 ${slot.subject}</div>
+            <div class="slot-task">${slot.task}</div>
+            <div class="slot-duration">⏱️ ${slot.duration} hour(s) ${slot.breakAfter ? '• Break recommended after' : ''}</div>
+          </div>
+        </div>
+      `).join('');
+
+      // Add breaks
+      for (let i = 0; i < schedule.length - 1; i++) {
+        if (schedule[i].breakAfter) {
+          const breakHtml = `
+            <div class="schedule-slot break-slot">
+              <div class="slot-time">${schedule[i].endTime}</div>
+              <div class="slot-details">
+                <div class="slot-subject">☕ Break Time</div>
+                <div class="slot-task">Rest and refresh</div>
+              </div>
+            </div>
+          `;
+          const nextElement = container.children[i + 1];
+          if (nextElement) {
+            nextElement.insertAdjacentHTML('afterend', breakHtml);
+          }
+        }
+      }
+    }
+
+    /**
+     * Render priority subjects
+     */
+    function renderSubjects(subjects) {
+      const container = document.getElementById('subjects-container');
+      
+      if (!subjects || subjects.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-light);">No subjects to prioritize</p>';
+        return;
+      }
+
+      container.innerHTML = subjects.map(subject => `
+        <div class="subject-card">
+          <div class="subject-title">🎯 ${subject.subject}</div>
+          <div class="subject-meta">
+            <span>⏱️ ${subject.estimatedHours}h</span>
+            <span>📋 ${subject.pendingTasks} task(s)</span>
+            <span class="badge badge-${subject.priority === 'high' ? 'danger' : 'warning'}">${subject.priority} Priority</span>
+          </div>
+          <div style="margin-top: 0.75rem; font-size: 0.9rem; color: var(--text-secondary);">${subject.reason}</div>
+        </div>
+      `).join('');
+    }
+
+    /**
+     * Render break intervals
+     */
+    function renderBreaks(breaks) {
+      const container = document.getElementById('breaks-container');
+      
+      if (!breaks || breaks.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-light);">No breaks scheduled</p>';
+        return;
+      }
+
+      container.innerHTML = breaks.map(brk => `
+        <div class="break-card">
+          <div class="break-time">Session ${brk.sessionNumber} Break</div>
+          <div class="break-duration">⏱️ ${brk.breakDuration} minutes</div>
+          <div style="margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-light);">${brk.reason}</div>
+        </div>
+      `).join('');
+    }
+
+    /**
+     * Render focus hours
+     */
+    function renderFocusHours(hours) {
+      const container = document.getElementById('focus-hours-container');
+      
+      if (!hours || hours.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-light);">No focus hours</p>';
+        return;
+      }
+
+      container.innerHTML = hours.map(hour => `
+        <div class="focus-hours-item">
+          <div>
+            <div style="font-weight: 700; color: var(--text-primary);">${hour.time}</div>
+            <div style="color: var(--text-secondary); font-size: 0.9rem;">${hour.description}</div>
+          </div>
+          <div class="focus-productivity">${hour.productivity}%</div>
+        </div>
+      `).join('');
+    }
+
+    /**
+     * Render insights
+     */
+    function renderInsights(insights) {
+      const container = document.getElementById('insights-container');
+      
+      if (!insights || insights.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-light);">No insights available</p>';
+        return;
+      }
+
+      container.innerHTML = insights.map(insight => {
+        const iconMap = {
+          'success': '✅',
+          'warning': '⚠️',
+          'tip': '💡',
+          'info': 'ℹ️'
+        };
+
+        return `
+          <div class="insight-card insight-${insight.type}">
+            <div class="insight-icon">${iconMap[insight.type] || '📌'}</div>
+            <div class="insight-content">
+              <h4>${insight.title}</h4>
+              <p>${insight.message}</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    /**
+     * Initialize page
+     */
+    function initPage() {
+      generateNewPlan();
+    }
+
+    initPage();
+  </script>
+</body>
+</html>

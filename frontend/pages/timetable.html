@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timetable - AI Study Planner</title>
+  <!-- FIXED PATH: Changed from /css/styles.css (absolute path) to ../css/styles.css (relative path)
+       WHY: Pages in /pages/ folder need to go up one level (..) to access /css/ folder
+       This prevents ERR_FILE_NOT_FOUND errors -->
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    .timetable-layout {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .main-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .timetable-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .timetable-header h1 {
+      margin: 0;
+    }
+
+    .timetable-grid {
+      background: var(--bg-primary);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 120px repeat(7, 1fr);
+      border: 2px solid var(--bg-tertiary);
+    }
+
+    .timetable-cell {
+      padding: 1rem;
+      border: 1px solid var(--bg-tertiary);
+      text-align: center;
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .timetable-header-cell {
+      background: var(--gradient-primary);
+      color: white;
+      font-weight: 700;
+      padding: 1.5rem 1rem;
+    }
+
+    .timetable-time-header {
+      background: var(--bg-tertiary);
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .timetable-slot {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+      padding: 0.75rem;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: var(--transition);
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+      word-wrap: break-word;
+      border: 2px solid var(--primary);
+    }
+
+    .timetable-slot:hover {
+      transform: scale(1.05);
+      box-shadow: var(--shadow-md);
+    }
+
+    .timetable-slot .subject {
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .timetable-slot .time {
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+    }
+
+    .timetable-list {
+      background: var(--bg-primary);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      padding: 1.5rem;
+    }
+
+    .timetable-item {
+      display: grid;
+      grid-template-columns: 100px 1fr auto;
+      gap: 1rem;
+      padding: 1rem;
+      border: 2px solid var(--bg-tertiary);
+      border-radius: var(--radius-md);
+      margin-bottom: 1rem;
+      align-items: center;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%);
+    }
+
+    .timetable-item .day {
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .timetable-item .details {
+      text-align: left;
+    }
+
+    .timetable-item .subject {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .timetable-item .time-slot {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .timetable-item .actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .timetable-item .actions button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: var(--transition);
+    }
+
+    .timetable-item .actions button:hover {
+      transform: scale(1.2);
+    }
+
+    @media (max-width: 768px) {
+      .timetable-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+      }
+
+      .timetable-grid {
+        grid-template-columns: 80px 1fr;
+        font-size: 0.75rem;
+      }
+
+      .timetable-header-cell {
+        display: none;
+      }
+
+      .timetable-cell {
+        padding: 0.5rem;
+        min-height: 80px;
+      }
+
+      .timetable-item {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+      }
+
+      .timetable-item .actions {
+        justify-content: flex-end;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="/" class="navbar-brand">📚 AI Study Planner</a>
+      <ul class="navbar-nav">
+        <li><a href="/pages/dashboard.html">Dashboard</a></li>
+        <li><a href="/pages/study-planner.html">AI Planner</a></li>
+        <li><a href="/pages/timetable.html" class="active">Timetable</a></li>
+        <li><a href="/pages/analytics.html">Analytics</a></li>
+        <li><a href="/pages/settings.html">Settings</a></li>
+        <li><button onclick="API.logout()" class="btn btn-secondary btn-sm">Logout</button></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="timetable-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <h3 style="margin-bottom: 1rem;">Quick Menu</h3>
+        <a href="/pages/dashboard.html" class="sidebar-item">📊 Dashboard</a>
+        <a href="/pages/study-planner.html" class="sidebar-item">🤖 AI Planner</a>
+        <a href="/pages/timetable.html" class="sidebar-item active">📅 Timetable</a>
+        <a href="/pages/analytics.html" class="sidebar-item">📈 Analytics</a>
+        <a href="/pages/settings.html" class="sidebar-item">⚙️ Settings</a>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div class="timetable-header">
+          <div>
+            <h1>📅 Weekly Timetable</h1>
+            <p style="color: var(--text-secondary); margin: 0;">Create and manage your study schedule</p>
+          </div>
+          <button class="btn btn-primary" onclick="openCreateTimetableModal()">+ Create Timetable</button>
+        </div>
+
+        <!-- Timetable Grid -->
+        <div id="timetable-grid-container" style="display: none;">
+          <div class="timetable-grid" id="timetable-grid"></div>
+        </div>
+
+        <!-- Timetable List -->
+        <div id="timetable-list-container">
+          <div class="timetable-list">
+            <h2 style="margin-top: 0;">Your Timetables</h2>
+            <div id="timetable-list"></div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Create Timetable Modal -->
+  <div id="create-timetable-modal" class="modal-overlay">
+    <div class="modal" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 style="margin: 0;">Create New Timetable</h3>
+        <button class="modal-close" onclick="closeCreateTimetableModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <form id="create-timetable-form">
+          <div class="form-group">
+            <label for="timetable-title">Timetable Name *</label>
+            <input type="text" id="timetable-title" class="form-control" placeholder="e.g., Weekly Study Schedule" required>
+          </div>
+
+          <div style="background: var(--bg-tertiary); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem;">
+            <h4 style="margin-top: 0;">Add Time Slots</h4>
+            <div id="slots-container"></div>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="addSlotInput()">+ Add Slot</button>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeCreateTimetableModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="submitCreateTimetable()">Create Timetable</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIXED PATH: Changed from /js/api.js (absolute path) to ../js/api.js (relative path)
+       WHY: Pages in /pages/ folder need to go up one level (..) to access /js/ folder
+       This prevents ERR_FILE_NOT_FOUND when api.js is not found -->
+  <script src="../js/api.js"></script>
+  <script>
+    // Check authentication
+    API.requireAuth();
+
+    let slotCount = 0;
+
+    const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+    /**
+     * Initialize page
+     */
+    async function initPage() {
+      await loadTimetables();
+    }
+
+    /**
+     * Load all timetables
+     */
+    async function loadTimetables() {
+      try {
+        const response = await API.getTimetables();
+        const timetables = response.timetables || [];
+
+        if (timetables.length === 0) {
+          document.getElementById('timetable-list').innerHTML = '<p style="text-align: center; color: var(--text-light); padding: 2rem;">No timetables yet. Create one to get started!</p>';
+          return;
+        }
+
+        // Display first timetable in grid
+        if (timetables.length > 0) {
+          renderTimetableGrid(timetables[0]);
+          document.getElementById('timetable-grid-container').style.display = 'block';
+        }
+
+        // Display all timetables in list
+        document.getElementById('timetable-list').innerHTML = timetables.map(tt => `
+          <div class="timetable-item">
+            <div class="day"><strong>${tt.title}</strong></div>
+            <div class="details">
+              <div class="subject">${tt.slots.length} slots</div>
+              <div class="time-slot">Created: ${API.formatDate(tt.createdAt)}</div>
+            </div>
+            <div class="actions">
+              <button onclick="viewTimetable('${tt._id}')" title="View">👁️</button>
+              <button onclick="deleteTimetableConfirm('${tt._id}')" title="Delete">🗑️</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Error loading timetables:', error);
+        API.showNotification('Error loading timetables', 'danger');
+      }
+    }
+
+    /**
+     * Render timetable in grid format
+     */
+    function renderTimetableGrid(timetable) {
+      const grid = document.getElementById('timetable-grid');
+      
+      // Create header row
+      let html = '<div class="timetable-cell timetable-time-header">Time</div>';
+      days.forEach(day => {
+        html += `<div class="timetable-cell timetable-header-cell">${day}</div>`;
+      });
+
+      // Create time slots (assuming 8 AM to 6 PM)
+      for (let hour = 8; hour < 18; hour++) {
+        const timeStr = hour.toString().padStart(2, '0') + ':00';
+        html += `<div class="timetable-cell timetable-time-header">${timeStr}</div>`;
+
+        days.forEach(day => {
+          const slot = timetable.slots.find(s => s.day === day && s.startTime.startsWith(hour.toString().padStart(2, '0')));
+          
+          if (slot) {
+            html += `
+              <div class="timetable-cell">
+                <div class="timetable-slot">
+                  <div class="subject">${slot.subject}</div>
+                  <div class="time">${slot.startTime} - ${slot.endTime}</div>
+                </div>
+              </div>
+            `;
+          } else {
+            html += '<div class="timetable-cell"></div>';
+          }
+        });
+      }
+
+      grid.innerHTML = html;
+    }
+
+    /**
+     * Delete timetable
+     */
+    async function deleteTimetableConfirm(id) {
+      if (confirm('Are you sure you want to delete this timetable?')) {
+        try {
+          await API.deleteTimetable(id);
+          API.showNotification('Timetable deleted', 'success');
+          await loadTimetables();
+        } catch (error) {
+          API.showNotification('Error deleting timetable', 'danger');
+        }
+      }
+    }
+
+    /**
+     * Modal Functions
+     */
+    function openCreateTimetableModal() {
+      document.getElementById('create-timetable-modal').classList.add('active');
+      document.getElementById('slots-container').innerHTML = '';
+      slotCount = 0;
+      addSlotInput();
+    }
+
+    function closeCreateTimetableModal() {
+      document.getElementById('create-timetable-modal').classList.remove('active');
+      document.getElementById('create-timetable-form').reset();
+    }
+
+    function addSlotInput() {
+      const container = document.getElementById('slots-container');
+      slotCount++;
+
+      const slotHtml = `
+        <div class="slot-input" id="slot-${slotCount}" style="background: white; padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; border: 2px solid var(--bg-tertiary);">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <div class="form-group" style="margin: 0;">
+              <label style="font-size: 0.85rem;">Day *</label>
+              <select class="form-control" data-slot="day" style="font-size: 0.9rem;" required>
+                <option value="">Select day</option>
+                ${days.map(d => `<option value="${d}">${d}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label style="font-size: 0.85rem;">Subject *</label>
+              <input type="text" class="form-control" data-slot="subject" placeholder="e.g., Math" style="font-size: 0.9rem;" required>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem;">
+            <div class="form-group" style="margin: 0;">
+              <label style="font-size: 0.85rem;">Start Time *</label>
+              <input type="time" class="form-control" data-slot="startTime" style="font-size: 0.9rem;" required>
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label style="font-size: 0.85rem;">End Time *</label>
+              <input type="time" class="form-control" data-slot="endTime" style="font-size: 0.9rem;" required>
+            </div>
+            <div style="display: flex; align-items: flex-end;">
+              <button type="button" class="btn btn-danger btn-sm" onclick="removeSlotInput(${slotCount})" style="width: 100%;">Remove</button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      container.innerHTML += slotHtml;
+    }
+
+    function removeSlotInput(id) {
+      document.getElementById(`slot-${id}`).remove();
+    }
+
+    async function submitCreateTimetable() {
+      const title = document.getElementById('timetable-title').value;
+
+      if (!title) {
+        API.showNotification('Please enter a title', 'warning');
+        return;
+      }
+
+      const slots = [];
+      document.querySelectorAll('.slot-input').forEach(slotEl => {
+        const day = slotEl.querySelector('[data-slot="day"]').value;
+        const subject = slotEl.querySelector('[data-slot="subject"]').value;
+        const startTime = slotEl.querySelector('[data-slot="startTime"]').value;
+        const endTime = slotEl.querySelector('[data-slot="endTime"]').value;
+
+        if (day && subject && startTime && endTime) {
+          slots.push({ day, subject, startTime, endTime });
+        }
+      });
+
+      if (slots.length === 0) {
+        API.showNotification('Please add at least one slot', 'warning');
+        return;
+      }
+
+      try {
+        await API.createTimetable(title, slots);
+        API.showNotification('Timetable created successfully! ✅', 'success');
+        closeCreateTimetableModal();
+        await loadTimetables();
+      } catch (error) {
+        API.showNotification(error.message || 'Error creating timetable', 'danger');
+      }
+    }
+
+    // Initialize
+    initPage();
+  </script>
+</body>
+</html>

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login & Register - AI Study Planner</title>
+  <!-- FIXED PATH: Changed from /css/styles.css (absolute path) to ../css/styles.css (relative path)
+       WHY: Pages in /pages/ folder need to go up one level (..) to access /css/ folder
+       This prevents ERR_FILE_NOT_FOUND errors when file is requested from /pages/login.html -->
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    .auth-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 1rem;
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    }
+    
+    .auth-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-xl);
+      padding: 2.5rem;
+      max-width: 450px;
+      width: 100%;
+      animation: slideIn 0.3s ease-out;
+    }
+    
+    .auth-card h2 {
+      text-align: center;
+      margin-bottom: 0.5rem;
+    }
+    
+    .auth-card .subtitle {
+      text-align: center;
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      font-size: 0.95rem;
+    }
+    
+    .tab-buttons {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      border-bottom: 2px solid var(--bg-tertiary);
+    }
+    
+    .tab-button {
+      flex: 1;
+      padding: 1rem;
+      border: none;
+      background: none;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-light);
+      cursor: pointer;
+      transition: var(--transition);
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+    }
+    
+    .tab-button.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.3s ease-out;
+    }
+    
+    .form-divider {
+      text-align: center;
+      margin: 1.5rem 0;
+      position: relative;
+    }
+    
+    .form-divider::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--bg-tertiary);
+    }
+    
+    .form-divider span {
+      background: white;
+      padding: 0 1rem;
+      color: var(--text-light);
+      font-size: 0.875rem;
+      position: relative;
+    }
+    
+    .forgot-password {
+      text-align: right;
+      margin-bottom: 1rem;
+    }
+    
+    .forgot-password a {
+      font-size: 0.875rem;
+      color: var(--primary);
+    }
+    
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    
+    .checkbox-group input {
+      margin-right: 0.5rem;
+      cursor: pointer;
+    }
+    
+    .checkbox-group label {
+      margin: 0;
+      font-weight: 400;
+      font-size: 0.95rem;
+      cursor: pointer;
+    }
+    
+    .additional-fields {
+      display: none;
+    }
+    
+    .additional-fields.show {
+      display: block;
+    }
+    
+    .form-footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+    }
+    
+    .form-footer a {
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <!-- Logo -->
+      <div style="text-align: center; margin-bottom: 1.5rem;">
+        <span style="font-size: 2rem;">📚</span>
+        <h3 style="margin: 0.5rem 0 0;">AI Study Planner</h3>
+      </div>
+
+      <!-- Tab Buttons -->
+      <div class="tab-buttons">
+        <button class="tab-button active" onclick="switchTab('login')">Login</button>
+        <button class="tab-button" onclick="switchTab('register')">Sign Up</button>
+      </div>
+
+      <!-- Login Tab -->
+      <div id="login-tab" class="tab-content active">
+        <div class="subtitle">Welcome back! Log in to your account.</div>
+        <form id="login-form">
+          <div class="form-group">
+            <label for="login-email">Email Address</label>
+            <input type="email" id="login-email" class="form-control" placeholder="your@email.com" required>
+          </div>
+          
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" class="form-control" placeholder="Enter your password" required>
+          </div>
+
+          <div class="forgot-password">
+            <a href="#forgot">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+        </form>
+
+        <div class="form-footer">
+          Don't have an account? <a href="#register" onclick="switchTab('register')">Sign up</a>
+        </div>
+      </div>
+
+      <!-- Register Tab -->
+      <div id="register-tab" class="tab-content">
+        <div class="subtitle">Create a new account to get started.</div>
+        <form id="register-form">
+          <div class="form-group">
+            <label for="register-name">Full Name</label>
+            <input type="text" id="register-name" class="form-control" placeholder="Your full name" required>
+          </div>
+
+          <div class="form-group">
+            <label for="register-email">Email Address</label>
+            <input type="email" id="register-email" class="form-control" placeholder="your@email.com" required>
+          </div>
+
+          <div class="form-group">
+            <label for="register-password">Password</label>
+            <input type="password" id="register-password" class="form-control" placeholder="Create a strong password" required>
+          </div>
+
+          <div class="form-group">
+            <label for="register-confirm">Confirm Password</label>
+            <input type="password" id="register-confirm" class="form-control" placeholder="Confirm your password" required>
+          </div>
+
+          <!-- Additional Fields (initially hidden) -->
+          <div class="additional-fields" id="additional-fields">
+            <div class="form-group">
+              <label for="register-level">Study Level</label>
+              <select id="register-level" class="form-control">
+                <option value="beginner">Beginner</option>
+                <option value="intermediate">Intermediate</option>
+                <option value="advanced">Advanced</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="register-hours">Daily Study Hours</label>
+              <input type="number" id="register-hours" class="form-control" min="1" max="12" value="4" required>
+            </div>
+          </div>
+
+          <div class="checkbox-group">
+            <input type="checkbox" id="terms" required>
+            <label for="terms">I agree to the Terms and Conditions</label>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+        </form>
+
+        <div class="form-footer">
+          Already have an account? <a href="#login" onclick="switchTab('login')">Sign in</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIXED PATH: Changed from /js/api.js (absolute path) to ../js/api.js (relative path)
+       WHY: Pages in /pages/ folder need to go up one level (..) to access /js/ folder
+       This prevents ERR_FILE_NOT_FOUND when api.js is not found at /js/ -->
+  <script src="../js/api.js"></script>
+  <script>
+    // Check if already logged in
+    if (API.isAuthenticated()) {
+      window.location.href = '/pages/dashboard.html';
+    }
+
+    /**
+     * Switch between tabs
+     */
+    function switchTab(tab) {
+      // Hide all tabs
+      document.querySelectorAll('.tab-content').forEach(el => {
+        el.classList.remove('active');
+      });
+      document.querySelectorAll('.tab-button').forEach(el => {
+        el.classList.remove('active');
+      });
+
+      // Show active tab
+      document.getElementById(tab + '-tab').classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    /**
+     * Handle Login
+     */
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('login-email').value;
+      const password = document.getElementById('login-password').value;
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      
+      try {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Signing in...';
+
+        const response = await API.loginUser(email, password);
+        
+        // Store token and user data
+        API.setAuthToken(response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+
+        API.showNotification('Login successful! Redirecting...', 'success');
+        
+        // Redirect to dashboard
+        setTimeout(() => {
+          window.location.href = '/pages/dashboard.html';
+        }, 1000);
+      } catch (error) {
+        API.showNotification(error.message || 'Login failed', 'danger');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Sign In';
+      }
+    });
+
+    /**
+     * Handle Register
+     */
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById('register-name').value;
+      const email = document.getElementById('register-email').value;
+      const password = document.getElementById('register-password').value;
+      const confirmPassword = document.getElementById('register-confirm').value;
+      const level = document.getElementById('register-level').value;
+      const dailyGoal = parseInt(document.getElementById('register-hours').value);
+      
+      // Validate passwords match
+      if (password !== confirmPassword) {
+        API.showNotification('Passwords do not match', 'danger');
+        return;
+      }
+
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      
+      try {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Creating account...';
+
+        const response = await API.registerUser(name, email, password);
+        
+        // Store token and user data
+        API.setAuthToken(response.token);
+        localStorage.setItem('user', JSON.stringify(response.user));
+
+        API.showNotification('Registration successful! Redirecting...', 'success');
+        
+        // Redirect to dashboard
+        setTimeout(() => {
+          window.location.href = '/pages/dashboard.html';
+        }, 1000);
+      } catch (error) {
+        API.showNotification(error.message || 'Registration failed', 'danger');
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = 'Create Account';
+      }
+    });
+
+    // Show additional fields on register tab
+    const registerTab = document.getElementById('register-tab');
+    registerTab.addEventListener('click', () => {
+      document.getElementById('additional-fields').classList.add('show');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - AI Study Planner</title>
+  <!-- FIXED PATH: Changed from /css/styles.css (absolute path) to ../css/styles.css (relative path)
+       WHY: Pages in /pages/ folder need to go up one level (..) to access /css/ folder
+       This prevents ERR_FILE_NOT_FOUND errors -->
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    .settings-layout {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .main-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .settings-header h1 {
+      margin: 0;
+    }
+
+    .settings-card {
+      background: var(--bg-primary);
+      padding: 1.5rem;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+    }
+
+    .settings-card h3 {
+      margin-top: 0;
+      color: var(--primary);
+      border-bottom: 2px solid var(--bg-tertiary);
+      padding-bottom: 0.5rem;
+    }
+
+    .settings-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .settings-group:last-child {
+      margin-bottom: 0;
+    }
+
+    .setting-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 0;
+      border-bottom: 1px solid var(--bg-tertiary);
+    }
+
+    .setting-item:last-child {
+      border-bottom: none;
+    }
+
+    .setting-info h4 {
+      margin: 0 0 0.25rem;
+      color: var(--text-primary);
+      font-size: 1rem;
+    }
+
+    .setting-info p {
+      margin: 0;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+    }
+
+    .setting-control {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 24px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.3s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: 0.3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--primary);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(26px);
+    }
+
+    .danger-zone {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%);
+      border-left: 4px solid var(--danger);
+      padding: 1.5rem;
+      border-radius: var(--radius-md);
+      margin-top: 2rem;
+    }
+
+    .danger-zone h4 {
+      color: var(--danger);
+      margin-top: 0;
+    }
+
+    .danger-zone p {
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+
+    .profile-section {
+      display: grid;
+      grid-template-columns: 120px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    .profile-avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: var(--radius-lg);
+      background: var(--gradient-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      color: white;
+    }
+
+    .profile-info {
+      flex: 1;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    @media (max-width: 768px) {
+      .settings-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+      }
+
+      .setting-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .setting-control {
+        width: 100%;
+      }
+
+      .profile-section {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .profile-avatar {
+        margin: 0 auto;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="/" class="navbar-brand">📚 AI Study Planner</a>
+      <ul class="navbar-nav">
+        <li><a href="/pages/dashboard.html">Dashboard</a></li>
+        <li><a href="/pages/study-planner.html">AI Planner</a></li>
+        <li><a href="/pages/timetable.html">Timetable</a></li>
+        <li><a href="/pages/analytics.html">Analytics</a></li>
+        <li><a href="/pages/settings.html" class="active">Settings</a></li>
+        <li><button onclick="API.logout()" class="btn btn-secondary btn-sm">Logout</button></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="settings-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <h3 style="margin-bottom: 1rem;">Settings Menu</h3>
+        <a href="#profile" class="sidebar-item active" onclick="switchTab(event, 'profile')">👤 Profile</a>
+        <a href="#preferences" class="sidebar-item" onclick="switchTab(event, 'preferences')">⚙️ Preferences</a>
+        <a href="#notifications" class="sidebar-item" onclick="switchTab(event, 'notifications')">🔔 Notifications</a>
+        <a href="#account" class="sidebar-item" onclick="switchTab(event, 'account')">🔐 Account</a>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div style="margin-bottom: 1rem;">
+          <h1 style="margin: 0 0 0.5rem;">⚙️ Settings</h1>
+          <p style="color: var(--text-secondary); margin: 0;">Manage your account and preferences</p>
+        </div>
+
+        <!-- Profile Tab -->
+        <div id="profile-tab" class="tab-content active">
+          <div class="settings-card">
+            <h3>Profile Information</h3>
+            <form id="profile-form">
+              <div class="profile-section">
+                <div class="profile-avatar">👤</div>
+                <div class="profile-info">
+                  <div class="form-group">
+                    <label for="profile-name">Full Name</label>
+                    <input type="text" id="profile-name" class="form-control" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="profile-email">Email Address</label>
+                    <input type="email" id="profile-email" class="form-control" disabled>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-row" style="margin-top: 1.5rem;">
+                <div class="form-group">
+                  <label for="profile-level">Study Level</label>
+                  <select id="profile-level" class="form-control">
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced">Advanced</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="profile-hours">Daily Study Goal (hours)</label>
+                  <input type="number" id="profile-hours" class="form-control" min="1" max="12" required>
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-top: 1.5rem;">
+                <label for="profile-subjects">Study Subjects (comma-separated)</label>
+                <input type="text" id="profile-subjects" class="form-control" placeholder="e.g., Mathematics, Physics, Chemistry">
+              </div>
+
+              <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button type="button" class="btn btn-secondary" onclick="resetProfileForm()">Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Preferences Tab -->
+        <div id="preferences-tab" class="tab-content">
+          <div class="settings-card">
+            <h3>Study Preferences</h3>
+            <div class="settings-group">
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h4>Dark Mode</h4>
+                  <p>Use dark theme for better eye comfort</p>
+                </div>
+                <div class="setting-control">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="dark-mode-toggle">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h4>Pomodoro Technique</h4>
+                  <p>Use 25-minute focused work sessions</p>
+                </div>
+                <div class="setting-control">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="pomodoro-toggle" checked>
+                    <span class="slider"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h4>Auto-Save Progress</h4>
+                  <p>Automatically save your study sessions</p>
+                </div>
+                <div class="setting-control">
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="autosave-toggle" checked>
+                    <span class="slider"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h4>Focus Time Interval</h4>
+                  <p>Duration of focused work session</p>
+                </div>
+                <div class="setting-control">
+                  <select class="form-control" style="max-width: 150px;">
+                    <option value="25">25 minutes</option>
+                    <option value="45">45 minutes</option>
+                    <option value="60">60 minutes</option>
+                    <option value="90">90 minutes</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notifications Tab -->
+        <div id="notifications-tab" class="tab-content">
+          <div class="settings-card">
+            <h3>Notification Settings</h3>
+            <div class="settings-group">
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h4>Task Reminders</h4>
+                  <p>Get notified about upcoming tasks</p>
+                </div>
+                <div class="setting-control">
+                  <label class="toggle-switch">
+                    <input type="checkbox" checked>
+                    <span class="slider"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h4>Break Reminders</h4>
+                  <p>Get reminded to take breaks during study</p>
+                </div>
+                <div class="setting-control">
+                  <label class="toggle-switch">
+                    <input type="checkbox" checked>
+                    <span class="slider"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h4>Daily Summary</h4>
+                  <p>Receive daily study summary emails</p>
+                </div>
+                <div class="setting-control">
+                  <label class="toggle-switch">
+                    <input type="checkbox">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h4>Weekly Report</h4>
+                  <p>Get weekly performance reports</p>
+                </div>
+                <div class="setting-control">
+                  <label class="toggle-switch">
+                    <input type="checkbox" checked>
+                    <span class="slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Account Tab -->
+        <div id="account-tab" class="tab-content">
+          <div class="settings-card">
+            <h3>Account Settings</h3>
+            <div class="settings-group">
+              <div class="setting-item">
+                <div class="setting-info">
+                  <h4>Account Status</h4>
+                  <p>Your account is active and verified</p>
+                </div>
+                <div style="background: rgba(16, 185, 129, 0.1); color: var(--success); padding: 0.5rem 1rem; border-radius: var(--radius-md); font-weight: 600;">Active</div>
+              </div>
+
+              <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 2px solid var(--bg-tertiary);">
+                <h4>Change Password</h4>
+                <form id="password-form" style="max-width: 400px;">
+                  <div class="form-group">
+                    <label for="current-password">Current Password</label>
+                    <input type="password" id="current-password" class="form-control" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="new-password">New Password</label>
+                    <input type="password" id="new-password" class="form-control" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="confirm-password">Confirm Password</label>
+                    <input type="password" id="confirm-password" class="form-control" required>
+                  </div>
+                  <button type="submit" class="btn btn-primary">Update Password</button>
+                </form>
+              </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="danger-zone">
+              <h4>⚠️ Danger Zone</h4>
+              <p>These actions are irreversible. Please proceed with caution.</p>
+              <button class="btn btn-danger" onclick="deleteAccount()">Delete Account</button>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- FIXED PATH: Changed from /js/api.js (absolute path) to ../js/api.js (relative path)
+       WHY: Pages in /pages/ folder need to go up one level (..) to access /js/ folder
+       This prevents ERR_FILE_NOT_FOUND when api.js is not found -->
+  <script src="../js/api.js"></script>
+  <script>
+    // Check authentication
+    API.requireAuth();
+
+    /**
+     * Switch settings tabs
+     */
+    function switchTab(e, tabName) {
+      e.preventDefault();
+
+      // Hide all tabs
+      document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+      });
+      document.querySelectorAll('.sidebar-item').forEach(item => {
+        item.classList.remove('active');
+      });
+
+      // Show active tab
+      document.getElementById(tabName + '-tab').classList.add('active');
+      e.target.classList.add('active');
+    }
+
+    /**
+     * Initialize settings page
+     */
+    async function initSettings() {
+      try {
+        const response = await API.getProfile();
+        const user = response.user;
+
+        document.getElementById('profile-name').value = user.name || '';
+        document.getElementById('profile-email').value = user.email || '';
+        document.getElementById('profile-level').value = user.level || 'beginner';
+        document.getElementById('profile-hours').value = user.dailyGoal || 4;
+        document.getElementById('profile-subjects').value = (user.studySubjects || []).join(', ');
+      } catch (error) {
+        console.error('Error loading profile:', error);
+        API.showNotification('Error loading profile', 'danger');
+      }
+    }
+
+    /**
+     * Handle profile form submission
+     */
+    document.getElementById('profile-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const name = document.getElementById('profile-name').value;
+      const level = document.getElementById('profile-level').value;
+      const dailyGoal = parseInt(document.getElementById('profile-hours').value);
+      const subjectsText = document.getElementById('profile-subjects').value;
+      const studySubjects = subjectsText
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
+
+      try {
+        await API.updateProfile({ name, level, dailyGoal, studySubjects });
+        API.showNotification('Profile updated successfully! ✅', 'success');
+      } catch (error) {
+        API.showNotification(error.message || 'Error updating profile', 'danger');
+      }
+    });
+
+    /**
+     * Reset profile form
+     */
+    function resetProfileForm() {
+      initSettings();
+    }
+
+    /**
+     * Handle password change
+     */
+    document.getElementById('password-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const newPassword = document.getElementById('new-password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+
+      if (newPassword !== confirmPassword) {
+        API.showNotification('Passwords do not match', 'danger');
+        return;
+      }
+
+      API.showNotification('Password change feature coming soon!', 'info');
+      e.target.reset();
+    });
+
+    /**
+     * Delete account
+     */
+    function deleteAccount() {
+      if (confirm('Are you absolutely sure? This action cannot be undone. All your data will be permanently deleted.')) {
+        if (confirm('Type "DELETE" to confirm account deletion.')) {
+          API.showNotification('Account deletion feature coming soon!', 'info');
+        }
+      }
+    }
+
+    // Initialize
+    initSettings();
+  </script>
+</body>
+</html>

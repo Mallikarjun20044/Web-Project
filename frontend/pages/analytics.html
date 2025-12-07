@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics - AI Study Planner</title>
+  <!-- FIXED PATH: Changed from /css/styles.css (absolute path) to ../css/styles.css (relative path)
+       WHY: Pages in /pages/ folder need to go up one level (..) to access /css/ folder
+       This prevents ERR_FILE_NOT_FOUND errors -->
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    .analytics-layout {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: 1.5rem;
+      margin-top: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .main-content {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    .analytics-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+
+    .analytics-header h1 {
+      margin: 0;
+    }
+
+    .period-selector {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .period-selector button {
+      padding: 0.5rem 1rem;
+      border: 2px solid var(--bg-tertiary);
+      background: white;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 600;
+    }
+
+    .period-selector button:hover {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .period-selector button.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+    }
+
+    .stat-card {
+      background: var(--bg-primary);
+      padding: 1.5rem;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+      border-left: 4px solid var(--primary);
+    }
+
+    .stat-card.success {
+      border-left-color: var(--success);
+    }
+
+    .stat-card.warning {
+      border-left-color: var(--warning);
+    }
+
+    .stat-card h3 {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin: 0 0 0.5rem;
+      text-transform: uppercase;
+    }
+
+    .stat-value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: var(--primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .stat-card.success .stat-value {
+      color: var(--success);
+    }
+
+    .stat-card.warning .stat-value {
+      color: var(--warning);
+    }
+
+    .stat-subtext {
+      color: var(--text-light);
+      font-size: 0.85rem;
+    }
+
+    .chart-container {
+      background: var(--bg-primary);
+      padding: 1.5rem;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+    }
+
+    .chart-container h3 {
+      margin-top: 0;
+      color: var(--primary);
+      border-bottom: 2px solid var(--bg-tertiary);
+      padding-bottom: 0.5rem;
+    }
+
+    .chart-placeholder {
+      height: 300px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(236, 72, 153, 0.05) 100%);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-light);
+      font-size: 1.1rem;
+    }
+
+    .subject-performance {
+      background: var(--bg-primary);
+      padding: 1.5rem;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-md);
+    }
+
+    .subject-row {
+      display: grid;
+      grid-template-columns: 150px 1fr 100px 100px;
+      gap: 1rem;
+      padding: 1rem;
+      border-bottom: 1px solid var(--bg-tertiary);
+      align-items: center;
+    }
+
+    .subject-row:last-child {
+      border-bottom: none;
+    }
+
+    .subject-name {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .progress-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .progress-bar {
+      flex: 1;
+      height: 8px;
+      background: var(--bg-tertiary);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--gradient-success);
+      border-radius: var(--radius-full);
+    }
+
+    .progress-text {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      font-weight: 600;
+      min-width: 50px;
+    }
+
+    .metric {
+      text-align: center;
+    }
+
+    .metric-value {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .metric-label {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 768px) {
+      .analytics-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+      }
+
+      .analytics-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .period-selector {
+        width: 100%;
+      }
+
+      .period-selector button {
+        flex: 1;
+      }
+
+      .subject-row {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="navbar-container">
+      <a href="/" class="navbar-brand">📚 AI Study Planner</a>
+      <ul class="navbar-nav">
+        <li><a href="/pages/dashboard.html">Dashboard</a></li>
+        <li><a href="/pages/study-planner.html">AI Planner</a></li>
+        <li><a href="/pages/timetable.html">Timetable</a></li>
+        <li><a href="/pages/analytics.html" class="active">Analytics</a></li>
+        <li><a href="/pages/settings.html">Settings</a></li>
+        <li><button onclick="API.logout()" class="btn btn-secondary btn-sm">Logout</button></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="analytics-layout">
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <h3 style="margin-bottom: 1rem;">Quick Menu</h3>
+        <a href="/pages/dashboard.html" class="sidebar-item">📊 Dashboard</a>
+        <a href="/pages/study-planner.html" class="sidebar-item">🤖 AI Planner</a>
+        <a href="/pages/timetable.html" class="sidebar-item">📅 Timetable</a>
+        <a href="/pages/analytics.html" class="sidebar-item active">📈 Analytics</a>
+        <a href="/pages/settings.html" class="sidebar-item">⚙️ Settings</a>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <div class="analytics-header">
+          <div>
+            <h1>📈 Study Analytics</h1>
+            <p style="color: var(--text-secondary); margin: 0;">Track your progress and performance</p>
+          </div>
+          <div class="period-selector">
+            <button class="active" onclick="changePeriod(7)">7 Days</button>
+            <button onclick="changePeriod(30)">30 Days</button>
+            <button onclick="changePeriod(365)">All Time</button>
+          </div>
+        </div>
+
+        <!-- Key Statistics -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <h3>Total Hours Studied</h3>
+            <div class="stat-value" id="stat-hours">0h</div>
+            <div class="stat-subtext">Last 7 days</div>
+          </div>
+          <div class="stat-card success">
+            <h3>Tasks Completed</h3>
+            <div class="stat-value" id="stat-tasks">0</div>
+            <div class="stat-subtext">This period</div>
+          </div>
+          <div class="stat-card warning">
+            <h3>Completion Rate</h3>
+            <div class="stat-value" id="stat-rate">0%</div>
+            <div class="stat-subtext">Overall</div>
+          </div>
+          <div class="stat-card">
+            <h3>Average Daily Hours</h3>
+            <div class="stat-value" id="stat-daily">0h</div>
+            <div class="stat-subtext">Per day</div>
+          </div>
+        </div>
+
+        <!-- Study Progress Chart -->
+        <div class="chart-container">
+          <h3>Weekly Study Hours</h3>
+          <div class="chart-placeholder">
+            📊 Interactive chart showing your weekly study progression
+          </div>
+        </div>
+
+        <!-- Subject-wise Performance -->
+        <div class="subject-performance">
+          <h3 style="margin-top: 0; color: var(--primary); border-bottom: 2px solid var(--bg-tertiary); padding-bottom: 0.5rem;">Subject-wise Performance</h3>
+          <div id="subject-performance-container">
+            <p style="text-align: center; color: var(--text-light); padding: 2rem;">Loading performance data...</p>
+          </div>
+        </div>
+
+        <!-- Two Column Layout -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+          <!-- Daily Breakdown -->
+          <div class="chart-container">
+            <h3>Daily Breakdown</h3>
+            <div id="daily-breakdown">
+              <p style="text-align: center; color: var(--text-light);">Mon: 2h | Tue: 3h | Wed: 2.5h | Thu: 3.5h | Fri: 1.5h | Sat: 4h | Sun: 2h</p>
+            </div>
+          </div>
+
+          <!-- Focus Score -->
+          <div class="chart-container">
+            <h3>Focus Score</h3>
+            <div style="text-align: center; padding: 2rem;">
+              <div style="font-size: 3rem; font-weight: bold; color: var(--success);" id="focus-score">85</div>
+              <div style="color: var(--text-secondary); margin-top: 0.5rem;">out of 100</div>
+              <p style="color: var(--text-light); font-size: 0.9rem;">Great focus performance! Keep it up 🎯</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Study Trends -->
+        <div class="chart-container">
+          <h3>Study Trends</h3>
+          <div style="padding: 1.5rem;">
+            <div style="margin-bottom: 1.5rem;">
+              <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span style="font-weight: 600;">Streak</span>
+                <span style="color: var(--success); font-weight: 700;">5 Days 🔥</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span style="font-weight: 600;">Most Productive Day</span>
+                <span style="color: var(--primary); font-weight: 700;">Saturday</span>
+              </div>
+              <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                <span style="font-weight: 600;">Favorite Subject</span>
+                <span style="color: var(--primary); font-weight: 700;">Mathematics</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span style="font-weight: 600;">Study Sessions</span>
+                <span style="color: var(--primary); font-weight: 700;">42 Sessions</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- FIXED PATH: Changed from /js/api.js (absolute path) to ../js/api.js (relative path)
+       WHY: Pages in /pages/ folder need to go up one level (..) to access /js/ folder
+       This prevents ERR_FILE_NOT_FOUND when api.js is not found -->
+  <script src="../js/api.js"></script>
+  <script>
+    // Check authentication
+    API.requireAuth();
+
+    let currentPeriod = 7;
+
+    /**
+     * Initialize analytics page
+     */
+    async function initAnalytics() {
+      await loadAnalyticsData();
+    }
+
+    /**
+     * Change period and reload data
+     */
+    async function changePeriod(days) {
+      currentPeriod = days;
+      
+      // Update button states
+      document.querySelectorAll('.period-selector button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      await loadAnalyticsData();
+    }
+
+    /**
+     * Load analytics data
+     */
+    async function loadAnalyticsData() {
+      try {
+        const response = await API.getAnalytics(currentPeriod);
+        const analytics = response.analytics;
+
+        // Update statistics
+        const totalHours = analytics.totalHoursStudied;
+        const avgDaily = Math.round((totalHours / currentPeriod) * 10) / 10;
+
+        document.getElementById('stat-hours').textContent = totalHours + 'h';
+        document.getElementById('stat-tasks').textContent = analytics.totalTasksCompleted;
+        document.getElementById('stat-rate').textContent = analytics.completionRate + '%';
+        document.getElementById('stat-daily').textContent = avgDaily + 'h';
+
+        // Render subject performance
+        renderSubjectPerformance(analytics.subjectPerformance);
+
+        // Update focus score (mock)
+        const focusScore = Math.min(100, Math.max(0, Math.round(analytics.avgFocusScore)));
+        document.getElementById('focus-score').textContent = focusScore;
+      } catch (error) {
+        console.error('Error loading analytics:', error);
+        API.showNotification('Error loading analytics', 'danger');
+      }
+    }
+
+    /**
+     * Render subject performance
+     */
+    function renderSubjectPerformance(subjectData) {
+      const container = document.getElementById('subject-performance-container');
+      
+      if (!subjectData || subjectData.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: var(--text-light); padding: 2rem;">No subject data yet. Start studying!</p>';
+        return;
+      }
+
+      // Calculate max hours for scaling
+      const maxHours = Math.max(...subjectData.map(s => s.totalHours), 1);
+
+      container.innerHTML = subjectData.map(subject => {
+        const percentage = Math.round((subject.totalHours / maxHours) * 100);
+        return `
+          <div class="subject-row">
+            <div class="subject-name">${subject.subject}</div>
+            <div class="progress-container">
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: ${percentage}%"></div>
+              </div>
+              <div class="progress-text">${percentage}%</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${subject.totalHours.toFixed(1)}h</div>
+              <div class="metric-label">Hours</div>
+            </div>
+            <div class="metric">
+              <div class="metric-value">${subject.tasksCompleted}</div>
+              <div class="metric-label">Tasks</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Initialize
+    initAnalytics();
+  </script>
+</body>
+</html>
